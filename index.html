@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>필사 연습장</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root{
+  --paper:#EDE7D9;
+  --paper-card:#F5F1E6;
+  --paper-line:#E3DCC9;
+  --ink:#2A2723;
+  --ink-soft:#5C574C;
+  --ghost:#8A8062;
+  --celadon:#7FA890;
+  --celadon-deep:#4F7A63;
+  --celadon-pale:#E1EBE2;
+  --vermillion:#B5482F;
+  --vermillion-pale:#F5DED7;
+  --shadow: rgba(42,39,35,0.10);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans KR', sans-serif; min-height:100vh; padding:32px 16px 64px;
+}
+.wrap{max-width:760px; margin:0 auto;}
+.masthead{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  margin-bottom:20px; border-bottom:2px solid var(--ink); padding-bottom:14px;
+}
+.masthead h1{font-family:'Noto Serif KR', serif; font-weight:700; font-size:28px; margin:0; letter-spacing:1px;}
+.masthead p{margin:4px 0 0; font-size:13px; color:var(--ink-soft);}
+.seal{
+  width:56px; height:56px; border-radius:6px; background:var(--vermillion); color:#F5EFE0;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  font-family:'Noto Serif KR', serif; font-weight:700; transform:rotate(-6deg);
+  box-shadow:0 3px 8px var(--shadow); flex-shrink:0;
+}
+.seal .num{font-size:17px; line-height:1;}
+.seal .den{font-size:10px; opacity:.85; line-height:1; margin-top:2px;}
+
+.tabs{display:flex; gap:4px; margin-bottom:16px;}
+.tab{
+  flex:1; text-align:center; padding:11px 10px; font-size:14px; font-weight:500;
+  border:1px solid var(--paper-line); border-bottom:none; border-radius:10px 10px 0 0;
+  background:var(--paper); color:var(--ink-soft); cursor:pointer;
+}
+.tab.active{background:var(--paper-card); color:var(--ink); border-color:var(--paper-line);}
+
+.card{background:var(--paper-card); border-radius:0 0 14px 14px; box-shadow:0 2px 10px var(--shadow); padding:28px 26px;}
+
+#setup label{display:block; font-size:13px; color:var(--ink-soft); margin-bottom:8px; font-weight:500;}
+#sourceText{
+  width:100%; min-height:220px; resize:vertical; border:1px solid var(--paper-line);
+  border-radius:10px; background:#FBF8F0; color:var(--ink); font-family:'Noto Serif KR', serif;
+  font-size:16px; line-height:1.9; padding:16px;
+}
+#sourceText:focus{outline:2px solid var(--celadon); border-color:transparent;}
+.opt-row{display:flex; align-items:center; gap:8px; margin:14px 0 20px; font-size:13px; color:var(--ink-soft);}
+.opt-row input{accent-color:var(--celadon-deep); width:16px; height:16px;}
+.btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+button{
+  font-family:'Noto Sans KR', sans-serif; font-size:14px; font-weight:500; border-radius:9px;
+  padding:11px 20px; cursor:pointer; border:1px solid var(--ink); background:transparent;
+  color:var(--ink); transition:transform .1s ease, background .15s ease;
+}
+button:hover{background:rgba(42,39,35,0.06);}
+button:active{transform:scale(0.97);}
+button.primary{background:var(--celadon-deep); border-color:var(--celadon-deep); color:#F5F1E6;}
+button.primary:hover{background:var(--celadon);}
+button.ghost{border-color:var(--paper-line); color:var(--ink-soft);}
+
+.saved-note{font-size:12px; color:var(--ink-soft); margin-top:14px;}
+.sync-box{margin-top:22px; padding-top:18px; border-top:1px solid var(--paper-line);}
+.sync-title{font-size:14px; font-weight:700; color:var(--ink); margin:0 0 6px;}
+.sync-code{
+  width:100%; min-height:64px; resize:vertical; border:1px solid var(--paper-line);
+  border-radius:9px; background:#FBF8F0; color:var(--ink-soft); font-family:monospace;
+  font-size:12px; padding:10px; margin:8px 0; word-break:break-all;
+}
+.saved-list{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+.saved-item{
+  display:flex; justify-content:space-between; align-items:center; background:var(--paper);
+  border-radius:8px; padding:9px 12px; cursor:pointer; font-size:13px; color:var(--ink);
+}
+.saved-item span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.saved-item button{padding:4px 10px; font-size:12px; flex-shrink:0; margin-left:10px;}
+
+#practice{display:none; position:relative;}
+.lines-wrap{position:relative;}
+.progress-badge{
+  position:absolute; top:8px; right:0; z-index:20; width:96px;
+  background:var(--celadon-deep); color:#F5F1E6;
+  font-family:'Noto Sans KR', sans-serif; font-size:12px; font-weight:700;
+  padding:6px 8px; border-radius:12px; pointer-events:none; text-align:center; line-height:1.4;
+  box-shadow:0 2px 6px var(--shadow);
+}
+.progress-track{width:100%; height:6px; background:var(--paper-line); border-radius:3px; overflow:hidden; margin-bottom:18px;}
+.progress-fill{height:100%; width:0%; background:var(--celadon-deep); transition:width .25s ease;}
+
+.imehint{
+  font-size:12px; color:var(--celadon-deep); background:var(--celadon-pale);
+  border-radius:8px; padding:8px 12px; margin-bottom:16px;
+}
+
+.lines{max-height:440px; overflow-y:auto; padding-right:4px; border-radius:10px; margin-right:104px;}
+.lines:focus{outline:none;}
+.lines.focused .line.active{box-shadow:inset 0 0 0 1.5px var(--celadon-deep);}
+
+.line{position:relative; padding:11px 12px; border-radius:9px; margin-bottom:2px;}
+.line.active{background:var(--celadon-pale);}
+.line.upcoming .ltext{color:var(--ghost); font-weight:500;}
+.line.done .ltext{color:var(--ink); font-weight:700;}
+.ltext{font-family:'Noto Serif KR', serif; font-size:19px; line-height:1.85; letter-spacing:.2px;}
+.ch{transition:color .1s ease;}
+.ch.ghost{color:var(--ghost); font-weight:500;}
+.ch.correct{color:var(--ink); font-weight:700;}
+.ch.wrong{color:var(--vermillion); background:var(--vermillion-pale); border-radius:3px;}
+.ch.building{color:var(--celadon-deep); border-bottom:2px solid var(--celadon-deep);}
+.ch.cursor{border-bottom:2px solid var(--ghost);}
+
+.controls-row{display:flex; justify-content:space-between; align-items:center; margin-top:18px; flex-wrap:wrap; gap:10px;}
+.fontctl{display:flex; gap:6px;}
+.fontctl button{padding:6px 12px; font-size:13px;}
+
+#mobileInput{
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  margin:0; padding:0; border:none; outline:none; background:transparent;
+  color:transparent; -webkit-text-fill-color:transparent; caret-color:transparent;
+  font-family:'Noto Serif KR', serif; letter-spacing:.2px;
+}
+
+.typo-bubble{
+  position:fixed;
+  background:var(--vermillion);
+  color:#F8ECE7;
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:'Noto Serif KR', serif;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  transform:translate(-50%, calc(-100% - 8px));
+  pointer-events:none;
+  z-index:50;
+  box-shadow:0 2px 6px var(--shadow);
+  display:none;
+}
+.typo-bubble::after{
+  content:'';
+  position:absolute;
+  left:50%; top:100%;
+  transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:var(--vermillion);
+}
+
+#done{display:none; text-align:center;}
+#done h2{font-family:'Noto Serif KR', serif; font-size:24px; margin:0 0 6px;}
+#done p.sub{color:var(--ink-soft); font-size:14px; margin:0 0 26px;}
+.donegrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:26px;}
+.donegrid .dstat{background:var(--paper); border-radius:10px; padding:16px 10px;}
+.donegrid .dstat span{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px;}
+.donegrid .dstat b{font-family:'Noto Serif KR', serif; font-size:22px; color:var(--celadon-deep);}
+
+@media (max-width:520px){
+  .card{padding:20px 16px;}
+  .masthead h1{font-size:22px;}
+  .ltext{font-size:17px;}
+  .lines{margin-right:70px;}
+  .progress-badge{font-size:10px; padding:4px 7px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>필사 연습장</h1>
+      <p>흐린 글자를 따라 입력하며 익히는 필사 프로그램</p>
+    </div>
+    <div class="seal" id="seal">
+      <span class="num" id="sealNum">0</span>
+      <span class="den" id="sealDen">/0</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabSetup">본문 관리</div>
+    <div class="tab" id="tabPractice">필사 연습</div>
+  </div>
+
+  <div class="card">
+
+    <div id="setup">
+      <label for="sourceText">연습할 글 (교과서·참고서 본문을 붙여넣으세요)</label>
+      <textarea id="sourceText" placeholder="여기에 텍스트를 붙여넣거나 직접 입력하세요"></textarea>
+      <p class="saved-note">문장부호(. ! ?)를 기준으로 자동으로 줄이 나뉩니다.</p>
+      <div class="btn-row">
+        <button class="primary" id="startBtn">필사 시작</button>
+        <button class="ghost" id="sampleBtn">예문 불러오기</button>
+        <button class="ghost" id="loadFileBtn">파일 불러오기 (.txt)</button>
+        <button class="ghost" id="saveFileBtn">텍스트 파일로 저장</button>
+        <button class="ghost" id="saveListBtn">목록에 저장</button>
+      </div>
+      <input type="file" id="fileInput" accept=".txt,text/plain" style="display:none">
+      <div id="savedList" class="saved-list"></div>
+      <p class="saved-note" id="savedNote" style="display:none;">※ 목록에 저장한 글은 이 창을 새로고침하면 사라집니다. 계속 보관하려면 '텍스트 파일로 저장'을 이용해 .txt로 내려받으세요.</p>
+
+      <div class="sync-box">
+        <p class="sync-title">다른 기기와 이어하기</p>
+        <p class="saved-note">이 프로그램은 서버가 없는 파일이라 자동으로 동기화되지 않아요. 대신 코드로 진행 상황을 옮길 수 있습니다. 지금 기기에서 코드를 만들어 복사한 뒤, 다른 기기에서 붙여넣고 불러오면 이어서 쓸 수 있어요.</p>
+        <div class="btn-row">
+          <button class="ghost" id="makeSyncBtn">동기화 코드 만들기</button>
+        </div>
+        <textarea id="syncCodeOut" class="sync-code" placeholder="여기에 코드가 생성됩니다" readonly></textarea>
+        <div class="btn-row">
+          <button class="ghost" id="copySyncBtn">코드 복사</button>
+        </div>
+        <textarea id="syncCodeIn" class="sync-code" placeholder="다른 기기에서 만든 코드를 여기에 붙여넣으세요"></textarea>
+        <div class="btn-row">
+          <button class="primary" id="loadSyncBtn">코드로 불러오기</button>
+        </div>
+        <p class="saved-note" id="syncMsg"></p>
+      </div>
+    </div>
+
+    <div id="practice">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="imehint">입력기를 <b>영어(2벌식 자판 그대로)</b>로 설정한 뒤, 흐린 글자 위에 자음·모음 순서대로 입력하세요. <b>Enter</b>를 누르면 다음 줄로 넘어갑니다.</div>
+
+      <div class="lines-wrap">
+        <div class="lines" id="lines" tabindex="0"></div>
+        <div class="progress-badge" id="progressBadge">0% · 0줄 남음</div>
+      </div>
+      <input type="text" id="mobileInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+      <div class="controls-row">
+        <div class="fontctl">
+          <button id="fontDown">가‑</button>
+          <button id="fontUp">가+</button>
+        </div>
+        <button class="ghost" id="debugBtn">디버그 로그</button>
+        <button class="ghost" id="debugCopyBtn">로그 복사</button>
+        <button class="ghost" id="restartBtn">처음부터</button>
+      </div>
+      <pre id="debugPanel" style="display:none; max-height:220px; overflow-y:auto; background:#2A2723; color:#B9E5C9; font-size:11px; line-height:1.5; padding:10px 12px; border-radius:8px; margin-top:12px; white-space:pre-wrap; word-break:break-all;"></pre>
+    </div>
+
+    <div id="done">
+      <h2>수고하셨습니다</h2>
+      <p class="sub">한 편의 필사를 마쳤습니다</p>
+      <div class="donegrid">
+        <div class="dstat"><span>정확도</span><b id="doneAcc">100%</b></div>
+        <div class="dstat"><span>총 글자 수</span><b id="doneChars">0</b></div>
+      </div>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="primary" id="againBtn">다시 연습하기</button>
+        <button class="ghost" id="newTextBtn">새 글로 연습하기</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const sampleText = `필사는 눈으로 읽던 글을 손끝으로 다시 새기는 일이다.
+좋은 문장을 따라 쓰다 보면 낱말의 결과 문장의 호흡이 몸에 남는다.
+처음에는 속도보다 정확함을 먼저 생각한다.
+한 글자 한 글자를 눈에 담고, 마음에 담고, 손으로 옮긴다.
+꾸준히 반복하면 어느새 문장이 익숙한 습관이 되어 있을 것이다.`;
+
+const CHO_LIST  = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG_LIST = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG_LIST = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+const KEYMAP = {
+  q:'ㅂ',Q:'ㅃ', w:'ㅈ',W:'ㅉ', e:'ㄷ',E:'ㄸ', r:'ㄱ',R:'ㄲ', t:'ㅅ',T:'ㅆ',
+  y:'ㅛ', u:'ㅕ', i:'ㅑ', o:'ㅐ',O:'ㅒ', p:'ㅔ',P:'ㅖ',
+  a:'ㅁ', s:'ㄴ', d:'ㅇ', f:'ㄹ', g:'ㅎ', h:'ㅗ', j:'ㅓ', k:'ㅏ', l:'ㅣ',
+  z:'ㅋ', x:'ㅌ', c:'ㅊ', v:'ㅍ', b:'ㅠ', n:'ㅜ', m:'ㅡ'
+};
+const JUNG_COMBINE = {'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ'};
+const JUNG_SPLIT   = {'ㅘ':'ㅗ','ㅙ':'ㅗ','ㅚ':'ㅗ','ㅝ':'ㅜ','ㅞ':'ㅜ','ㅟ':'ㅜ','ㅢ':'ㅡ'};
+const JONG_COMBINE = {'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ'};
+const JONG_SPLIT   = {'ㄳ':['ㄱ','ㅅ'],'ㄵ':['ㄴ','ㅈ'],'ㄶ':['ㄴ','ㅎ'],'ㄺ':['ㄹ','ㄱ'],'ㄻ':['ㄹ','ㅁ'],'ㄼ':['ㄹ','ㅂ'],'ㄽ':['ㄹ','ㅅ'],'ㄾ':['ㄹ','ㅌ'],'ㄿ':['ㄹ','ㅍ'],'ㅀ':['ㄹ','ㅎ'],'ㅄ':['ㅂ','ㅅ']};
+
+function isConsonant(jm){ return CHO_LIST.includes(jm); }
+function combineJung(a,b){ return JUNG_COMBINE[a+b] || null; }
+function splitJung(c){ return JUNG_SPLIT[c] || null; }
+function combineJong(a,b){ return JONG_COMBINE[a+b] || null; }
+function splitJong(c){ return JONG_SPLIT[c] || null; }
+function isValidJong(c){ return JONG_LIST.includes(c) && c!==''; }
+
+function composeSyllable(cho,jung,jong){
+  const ci = CHO_LIST.indexOf(cho);
+  const ji = JUNG_LIST.indexOf(jung);
+  const ki = JONG_LIST.indexOf(jong||'');
+  if(ci<0||ji<0) return '';
+  return String.fromCharCode(0xAC00 + (ci*21+ji)*28 + ki);
+}
+
+function decomposeChar(ch){
+  if(!ch) return {other:ch};
+  const code = ch.codePointAt(0);
+  if(code>=0xAC00 && code<=0xD7A3){
+    const idx = code-0xAC00;
+    const cho = CHO_LIST[Math.floor(idx/(21*28))];
+    const jung = JUNG_LIST[Math.floor((idx%(21*28))/28)];
+    const jong = JONG_LIST[idx%28] || null;
+    return {cho, jung, jong};
+  }
+  if(CHO_LIST.includes(ch)) return {cho:ch, jung:null, jong:null};
+  if(JUNG_LIST.includes(ch)) return {cho:null, jung:ch, jong:null};
+  return {other:ch};
+}
+
+function renderPartial(state){
+  if(!state.cho && !state.jung) return '';
+  if(state.cho && !state.jung) return state.cho;
+  if(!state.cho && state.jung) return state.jung;
+  return composeSyllable(state.cho, state.jung, state.jong||'');
+}
+
+function isMatchSoFar(state, targetChar){
+  const d = decomposeChar(targetChar);
+  if(d.other!==undefined) return (state.cho||state.jung) ? false : null;
+  if(state.cho && d.cho!==state.cho) return false;
+  if(state.jung && d.jung!==state.jung){
+    const prefixOf = JUNG_SPLIT[d.jung];
+    if(prefixOf !== state.jung) return false;
+  }
+  return true;
+}
+
+const setupView = document.getElementById('setup');
+const practiceView = document.getElementById('practice');
+const doneView = document.getElementById('done');
+const sourceText = document.getElementById('sourceText');
+const linesEl = document.getElementById('lines');
+const progressFill = document.getElementById('progressFill');
+const sealNum = document.getElementById('sealNum');
+const sealDen = document.getElementById('sealDen');
+const tabSetup = document.getElementById('tabSetup');
+const tabPractice = document.getElementById('tabPractice');
+const fileInput = document.getElementById('fileInput');
+const mobileInput = document.getElementById('mobileInput');
+const touchMode = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+const typoBubble = document.createElement('div');
+typoBubble.className = 'typo-bubble';
+document.body.appendChild(typoBubble);
+
+function showTypoBubble(span, correctChar){
+  const rect = span.getBoundingClientRect();
+  typoBubble.textContent = (correctChar===' ') ? '␣ 띄어쓰기' : correctChar;
+  typoBubble.style.left = (rect.left + rect.width/2) + 'px';
+  typoBubble.style.top = rect.top + 'px';
+  typoBubble.style.display = 'block';
+  clearTimeout(typoBubble._hideTimer);
+  typoBubble._hideTimer = setTimeout(hideTypoBubble, 1400);
+}
+function hideTypoBubble(){ typoBubble.style.display = 'none'; }
+
+let lines = [];
+let current = 0;
+let fontScale = 1;
+let committed = [];
+let composeState = {cho:null, jung:null, jong:null};
+let attempts = 0, mistakes = 0;
+let savedTexts = [];
+let practiceFinished = false;
+let desktopAutoFixRunning = false;
+let mobileAutoFixRunning = false;
+let mobileFixDebounce = null;
+let debugLog = [];
+let debugPanelUpdateScheduled = false;
+function dbg(msg){
+  debugLog.push(msg);
+  if(debugLog.length>200) debugLog.shift();
+  const panel = document.getElementById('debugPanel');
+  if(panel && panel.style.display!=='none' && !debugPanelUpdateScheduled){
+    debugPanelUpdateScheduled = true;
+    requestAnimationFrame(() => {
+      debugPanelUpdateScheduled = false;
+      panel.textContent = debugLog.join('\n');
+      panel.scrollTop = panel.scrollHeight;
+    });
+  }
+}
+function stateSnap(){
+  return 'committed=['+committed.join('')+'] compose='+JSON.stringify(composeState);
+}
+
+const STORAGE_KEY = 'pilsaTrainerState_v1';
+
+function committedLockedLength(){
+  const t = lines[current];
+  if(!t) return committed.length;
+  for(let i=0;i<committed.length;i++){
+    if(committed[i]!==t[i]) return i;
+  }
+  return committed.length;
+}
+
+function mobileLockedLength(){
+  const t = lines[current];
+  const val = mobileInput.value;
+  if(!t) return val.length;
+  for(let i=0;i<val.length;i++){
+    if(val[i]!==t[i]) return i;
+  }
+  return val.length;
+}
+
+function desktopNeedsFix(){
+  const t = lines[current];
+  if(!t) return false;
+  const locked = committedLockedLength();
+  if(committed.length>locked) return true;
+  if(composeState.cho||composeState.jung){
+    const idx = committed.length;
+    if(idx<t.length) return isMatchSoFar(composeState, t[idx])===false;
+  }
+  return false;
+}
+
+function runDesktopAutoFix(){
+  let guard = 0;
+  while(desktopNeedsFix() && guard<500){
+    dbg('    autofix step '+guard+' before: '+stateSnap());
+    processBackspace();
+    dbg('    autofix step '+guard+' after:  '+stateSnap());
+    guard++;
+  }
+  renderActiveLine();
+  updateStatsDisplay();
+}
+
+function runMobileAutoFix(){
+  const locked = mobileLockedLength();
+  dbg('  MOBILE autofix trimming ['+mobileInput.value+'] to locked='+locked);
+  if(mobileInput.value.length>locked){
+    mobileInput.value = mobileInput.value.slice(0, locked);
+  }
+  renderActiveLineMobile(false);
+  updateStatsDisplay();
+}
+
+function saveState(){
+  try{
+    const state = {
+      sourceText: sourceText.value,
+      savedTexts: savedTexts,
+      practice: (lines.length>0 && !practiceFinished) ? {lines: lines, currentIndex: current} : null
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(err){}
+}
+
+function clearPracticeProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const state = raw ? JSON.parse(raw) : {};
+    state.practice = null;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(err){}
+}
+
+function encodeState(obj){
+  const json = JSON.stringify(obj);
+  const bytes = new TextEncoder().encode(json);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+function decodeState(code){
+  const bin = atob(code.trim());
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  const json = new TextDecoder().decode(bytes);
+  return JSON.parse(json);
+}
+
+document.getElementById('makeSyncBtn').addEventListener('click', () => {
+  const state = {
+    v: 1,
+    sourceText: sourceText.value,
+    practice: (lines.length>0 && !practiceFinished) ? {lines: lines, currentIndex: current} : null
+  };
+  const code = encodeState(state);
+  document.getElementById('syncCodeOut').value = code;
+  document.getElementById('syncMsg').textContent = '';
+});
+
+function copyTextRobust(text, onDone){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => onDone(true)).catch(() => {
+      fallbackCopy(text, onDone);
+    });
+  } else {
+    fallbackCopy(text, onDone);
+  }
+}
+function fallbackCopy(text, onDone){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    onDone(ok);
+  }catch(err){
+    onDone(false);
+  }
+}
+
+document.getElementById('copySyncBtn').addEventListener('click', () => {
+  const out = document.getElementById('syncCodeOut');
+  if(!out.value) return;
+  out.select();
+  copyTextRobust(out.value, (ok) => {
+    document.getElementById('syncMsg').textContent = ok ? '복사했습니다.' : '복사에 실패했어요. 직접 선택해서 복사해주세요.';
+  });
+});
+
+document.getElementById('loadSyncBtn').addEventListener('click', () => {
+  const raw = document.getElementById('syncCodeIn').value;
+  const msg = document.getElementById('syncMsg');
+  if(!raw.trim()){ msg.textContent = '붙여넣은 코드가 없어요.'; return; }
+  try{
+    const state = decodeState(raw);
+    if(typeof state.sourceText !== 'string') throw new Error('invalid');
+    sourceText.value = state.sourceText;
+    saveState();
+    if(state.practice && Array.isArray(state.practice.lines) && state.practice.lines.length){
+      lines = state.practice.lines;
+      current = Math.min(state.practice.currentIndex||0, lines.length);
+      practiceFinished = false;
+      attempts = 0; mistakes = 0;
+      tabPractice.classList.add('active'); tabSetup.classList.remove('active');
+      setupView.style.display = 'none'; doneView.style.display = 'none';
+      if(current>=lines.length){
+        practiceView.style.display='none';
+        finishPractice();
+      } else {
+        practiceView.style.display = 'block';
+        if(touchMode){ mobileInput.value=''; mobileInput.maxLength = lines[current].length; }
+        else { resetComposer(); }
+        renderLines();
+      }
+      msg.textContent = '';
+    } else {
+      msg.textContent = '본문을 불러왔습니다. "필사 시작"을 눌러 이어서 진행하세요.';
+    }
+  }catch(err){
+    msg.textContent = '코드를 읽을 수 없어요. 정확히 복사했는지 확인해주세요.';
+  }
+});
+
+function restoreState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    if(typeof state.sourceText === 'string') sourceText.value = state.sourceText;
+    if(Array.isArray(state.savedTexts)){ savedTexts = state.savedTexts; renderSavedList(); }
+    if(state.practice && Array.isArray(state.practice.lines) && state.practice.lines.length){
+      lines = state.practice.lines;
+      current = Math.min(state.practice.currentIndex||0, lines.length);
+      practiceFinished = false;
+      attempts = 0; mistakes = 0;
+      tabPractice.classList.add('active'); tabSetup.classList.remove('active');
+      setupView.style.display = 'none'; doneView.style.display = 'none';
+      if(current>=lines.length){
+        practiceView.style.display='none';
+        finishPractice();
+      } else {
+        practiceView.style.display = 'block';
+        if(touchMode){ mobileInput.value=''; mobileInput.maxLength = lines[current].length; }
+        else { resetComposer(); }
+        renderLines();
+        updateStatsDisplay();
+      }
+    }
+  }catch(err){}
+}
+
+document.getElementById('sampleBtn').addEventListener('click', () => { sourceText.value = sampleText; saveState(); });
+sourceText.addEventListener('input', saveState);
+
+document.getElementById('loadFileBtn').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => { sourceText.value = ev.target.result; saveState(); };
+  reader.readAsText(f, 'utf-8');
+  fileInput.value = '';
+});
+
+function firstLineTitle(text){
+  const line = (text.split(/\r?\n/).find(l => l.trim())) || '';
+  return line.trim().slice(0, 24);
+}
+
+document.getElementById('saveFileBtn').addEventListener('click', () => {
+  const text = sourceText.value;
+  if(!text.trim()) return;
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (firstLineTitle(text) || '필사문') + '.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('saveListBtn').addEventListener('click', () => {
+  const text = sourceText.value;
+  if(!text.trim()) return;
+  const title = firstLineTitle(text) || ('저장한 글 ' + (savedTexts.length + 1));
+  savedTexts.push({id: Date.now(), title, text});
+  renderSavedList();
+});
+
+function renderSavedList(){
+  saveState();
+  const wrap = document.getElementById('savedList');
+  const note = document.getElementById('savedNote');
+  wrap.innerHTML = '';
+  note.style.display = savedTexts.length ? 'block' : 'none';
+  savedTexts.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'saved-item';
+    const t = document.createElement('span');
+    t.textContent = item.title;
+    const del = document.createElement('button');
+    del.className = 'ghost';
+    del.textContent = '삭제';
+    del.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      savedTexts = savedTexts.filter(s => s.id !== item.id);
+      renderSavedList();
+    });
+    row.appendChild(t); row.appendChild(del);
+    row.addEventListener('click', () => { sourceText.value = item.text; });
+    wrap.appendChild(row);
+  });
+}
+
+document.getElementById('startBtn').addEventListener('click', () => { goPractice(); });
+
+tabSetup.addEventListener('click', () => {
+  hideTypoBubble();
+  if(touchMode) mobileInput.blur();
+  tabSetup.classList.add('active'); tabPractice.classList.remove('active');
+  setupView.style.display='block'; practiceView.style.display='none'; doneView.style.display='none';
+});
+tabPractice.addEventListener('click', () => { goPractice(); });
+
+function goPractice(){
+  const raw = sourceText.value.trim();
+  if(!raw){ sourceText.focus(); tabSetup.click(); return; }
+  buildLines(raw);
+  if(lines.length===0) return;
+  tabPractice.classList.add('active'); tabSetup.classList.remove('active');
+  setupView.style.display='none'; doneView.style.display='none'; practiceView.style.display='block';
+  startPractice();
+}
+
+const MAX_LINE_LEN = 70;
+
+function splitLongLine(str, maxLen){
+  if(str.length<=maxLen) return [str];
+  let splitAt = -1;
+  for(let i=Math.min(maxLen, str.length-1); i>0; i--){
+    if(str[i]===','){ splitAt = i+1; break; }
+  }
+  if(splitAt===-1){
+    for(let i=Math.min(maxLen, str.length-1); i>0; i--){
+      if(str[i]===' '){ splitAt = i+1; break; }
+    }
+  }
+  if(splitAt===-1 || splitAt>=str.length){
+    splitAt = maxLen;
+  }
+  const first = str.slice(0, splitAt).trim();
+  const rest = str.slice(splitAt).trim();
+  if(!first) return rest ? splitLongLine(rest, maxLen) : [];
+  if(!rest) return [first];
+  return [first, ...splitLongLine(rest, maxLen)];
+}
+
+function buildLines(raw){
+  const rows = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  let expanded = [];
+  rows.forEach(r=>{
+    const parts = r.split(/(?<=[.!?。！？](?:["'）)]?))\s+(?=\S)/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length>1) expanded.push(...parts); else expanded.push(r);
+  });
+  let finalLines = [];
+  expanded.forEach(p => { finalLines.push(...splitLongLine(p, MAX_LINE_LEN)); });
+  lines = finalLines;
+}
+
+if(touchMode){
+  document.querySelector('.imehint').innerHTML = '흐린 글자를 탭한 뒤, 화면 키보드의 한글 입력기로 그 위에 그대로 입력하세요. <b>Enter</b>를 누르면 다음 줄로 넘어갑니다.';
+}
+
+function startPractice(){
+  hideTypoBubble();
+  desktopAutoFixRunning = false;
+  mobileAutoFixRunning = false;
+  clearTimeout(mobileFixDebounce);
+  practiceFinished = false;
+  current = 0; attempts = 0; mistakes = 0;
+  if(touchMode){
+    mobileInput.value = '';
+    mobileInput.maxLength = lines[0] ? lines[0].length : 0;
+  } else {
+    resetComposer();
+  }
+  renderLines();
+  updateStatsDisplay();
+  if(touchMode) mobileInput.focus(); else linesEl.focus();
+}
+
+function resetComposer(){ committed = []; composeState = {cho:null,jung:null,jong:null}; }
+
+function renderLines(){
+  linesEl.innerHTML = '';
+  lines.forEach((line, idx) => {
+    const row = document.createElement('div');
+    row.className = 'line' + (idx===current ? ' active' : idx<current ? ' done' : ' upcoming');
+    row.id = 'line-'+idx;
+    const text = document.createElement('div');
+    text.className = 'ltext'; text.style.fontSize = (19*fontScale)+'px'; text.id = 'ltext-'+idx;
+    if(idx!==current){ text.textContent = line; }
+    row.appendChild(text);
+    linesEl.appendChild(row);
+  });
+  if(touchMode){
+    const activeRow = document.getElementById('line-'+current);
+    if(activeRow){
+      activeRow.appendChild(mobileInput);
+      mobileInput.style.fontSize = (19*fontScale)+'px';
+    }
+    renderActiveLineMobile();
+  } else {
+    renderActiveLine();
+  }
+  updateSeal(); updateProgress(); scrollToActive();
+}
+
+function renderActiveLine(){
+  if(current>=lines.length) return;
+  const target = lines[current];
+  const textEl = document.getElementById('ltext-'+current);
+  if(!textEl) return;
+  textEl.innerHTML = '';
+  for(let i=0;i<target.length;i++){
+    const span = document.createElement('span');
+    span.className = 'ch';
+    if(i<committed.length){
+      span.textContent = committed[i];
+      span.classList.add(committed[i]===target[i] ? 'correct' : 'wrong');
+    } else if(i===committed.length && (composeState.cho||composeState.jung)){
+      const partialChar = renderPartial(composeState);
+      let cls;
+      if(partialChar === target[i]) cls = 'correct';
+      else if(isMatchSoFar(composeState, target[i]) === false) cls = 'wrong';
+      else cls = 'building';
+      span.textContent = partialChar || target[i];
+      span.classList.add(cls);
+    } else {
+      span.textContent = target[i];
+      span.classList.add('ghost');
+      if(i===committed.length) span.classList.add('cursor');
+    }
+    textEl.appendChild(span);
+  }
+}
+
+function renderFinalizedLine(idx){
+  const target = lines[idx];
+  const textEl = document.getElementById('ltext-'+idx);
+  textEl.innerHTML = '';
+  for(let i=0;i<target.length;i++){
+    const span = document.createElement('span');
+    span.className = 'ch';
+    if(i<committed.length){
+      span.textContent = committed[i];
+      span.classList.add(committed[i]===target[i] ? 'correct' : 'wrong');
+    } else {
+      span.textContent = target[i];
+      span.classList.add('ghost');
+    }
+    textEl.appendChild(span);
+  }
+}
+
+function renderActiveLineMobile(composing){
+  if(current>=lines.length) return;
+  const target = lines[current];
+  const textEl = document.getElementById('ltext-'+current);
+  if(!textEl) return;
+  const typed = mobileInput.value;
+  textEl.innerHTML = '';
+  for(let i=0;i<target.length;i++){
+    const span = document.createElement('span');
+    span.className = 'ch';
+    if(i<typed.length){
+      if(typed[i]===target[i]){
+        span.classList.add('correct');
+      } else if(composing){
+        span.classList.add('building');
+      } else {
+        span.classList.add('wrong');
+      }
+      span.textContent = typed[i];
+    } else {
+      span.textContent = target[i];
+      span.classList.add('ghost');
+      if(i===typed.length) span.classList.add('cursor');
+    }
+    textEl.appendChild(span);
+  }
+}
+
+function autoFillSpacesMobile(){
+  const target = lines[current];
+  if(!target) return;
+  while(mobileInput.value.length<target.length && target[mobileInput.value.length]===' '){
+    mobileInput.value += ' ';
+  }
+}
+
+function mobileNeedsFix(composing){
+  if(composing) return false;
+  const target = lines[current];
+  const typed = mobileInput.value;
+  for(let i=0;i<typed.length;i++){
+    if(typed[i]!==target[i]) return true;
+  }
+  return false;
+}
+
+function finalizeMobileInput(){
+  if(current>=lines.length) return;
+  renderActiveLineMobile(false);
+  const target = lines[current];
+  const typed = mobileInput.value;
+  const idx = typed.length-1;
+  if(idx>=0 && idx<target.length){
+    attempts++;
+    if(typed[idx]!==target[idx]) mistakes++;
+    updateStatsDisplay();
+  }
+  const needsFix = mobileNeedsFix(false);
+  dbg('  FINALIZE needsFix='+needsFix+' locked='+mobileLockedLength()+' typed=['+typed+']');
+  if(needsFix){
+    const locked = mobileLockedLength();
+    const textEl = document.getElementById('ltext-'+current);
+    const span = textEl ? textEl.children[locked] : null;
+    if(span) showTypoBubble(span, target[locked]);
+    clearTimeout(mobileFixDebounce);
+    runMobileAutoFix();
+  } else {
+    clearTimeout(mobileFixDebounce);
+    hideTypoBubble();
+  }
+  checkLineCompleteMobile(false);
+}
+
+function renderFinalizedLineMobile(idx, typed){
+  const target = lines[idx];
+  const textEl = document.getElementById('ltext-'+idx);
+  textEl.innerHTML = '';
+  for(let i=0;i<target.length;i++){
+    const span = document.createElement('span');
+    span.className = 'ch';
+    if(i<typed.length){
+      span.textContent = typed[i];
+      span.classList.add(typed[i]===target[i] ? 'correct' : 'wrong');
+    } else {
+      span.textContent = target[i];
+      span.classList.add('ghost');
+    }
+    textEl.appendChild(span);
+  }
+}
+
+function advanceLineMobile(){
+  mobileAutoFixRunning = false;
+  clearTimeout(mobileFixDebounce);
+  current++;
+  mobileInput.value = '';
+  if(current>=lines.length){ finishPractice(); return; }
+  const nextRow = document.getElementById('line-'+current);
+  nextRow.classList.remove('upcoming'); nextRow.classList.add('active');
+  nextRow.appendChild(mobileInput);
+  mobileInput.style.fontSize = (19*fontScale)+'px';
+  mobileInput.maxLength = lines[current].length;
+  renderActiveLineMobile();
+  updateSeal(); updateProgress(); scrollToActive(); updateStatsDisplay();
+  mobileInput.focus();
+}
+
+function checkLineCompleteMobile(composing){
+  if(composing) return;
+  const target = lines[current];
+  if(mobileInput.value.length===target.length && mobileInput.value===target){
+    renderActiveLineMobile();
+    const row = document.getElementById('line-'+current);
+    row.classList.remove('active'); row.classList.add('done');
+    hideTypoBubble();
+    dbg('MOBILE line complete -> advance');
+    advanceLineMobile();
+  }
+}
+
+mobileInput.addEventListener('focus', () => {
+  setTimeout(() => mobileInput.scrollIntoView({block:'center', behavior:'smooth'}), 300);
+});
+
+mobileInput.addEventListener('compositionstart', () => {
+  autoFillSpacesMobile();
+  renderActiveLineMobile(true);
+  dbg('MOBILE compositionstart value=['+mobileInput.value+']');
+});
+let finalizeScheduled = false;
+function scheduleFinalize(){
+  if(finalizeScheduled) return;
+  finalizeScheduled = true;
+  setTimeout(() => {
+    finalizeScheduled = false;
+    finalizeMobileInput();
+  }, 0);
+}
+
+mobileInput.addEventListener('compositionend', () => {
+  dbg('MOBILE compositionend value=['+mobileInput.value+']');
+  scheduleFinalize();
+});
+
+mobileInput.addEventListener('input', (e) => {
+  if(current>=lines.length) return;
+  const composing = !!e.isComposing;
+  dbg('MOBILE input composing='+composing+' typed=['+mobileInput.value+']');
+  if(composing){
+    renderActiveLineMobile(true);
+    hideTypoBubble();
+    return;
+  }
+  scheduleFinalize();
+});
+
+mobileInput.addEventListener('keydown', (e) => {
+  if(e.key==='Backspace'){
+    mobileAutoFixRunning = false;
+    clearTimeout(mobileFixDebounce);
+  }
+  if(e.key==='Backspace' && !e.isComposing){
+    if(mobileInput.value.length<=mobileLockedLength()){
+      e.preventDefault();
+      return;
+    }
+  }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(current>=lines.length) return;
+    hideTypoBubble();
+    checkLineCompleteMobile();
+  }
+});
+
+function scrollToActive(){
+  const el = document.getElementById('line-'+current);
+  if(!el) return;
+  const elRect = el.getBoundingClientRect();
+  const contRect = linesEl.getBoundingClientRect();
+  if(elRect.top < contRect.top || elRect.bottom > contRect.bottom){
+    el.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+}
+
+function updateSeal(){ sealNum.textContent = Math.min(current+1, lines.length); sealDen.textContent = '/'+lines.length; saveState(); }
+function updateProgress(){
+  const pct = lines.length ? Math.round((current/lines.length)*100) : 0;
+  progressFill.style.width = pct+'%';
+  const badge = document.getElementById('progressBadge');
+  if(badge){
+    const remaining = Math.max(lines.length - current, 0);
+    badge.innerHTML = pct+'%<br>'+remaining+'줄 남음';
+  }
+}
+function updateStatsDisplay(){}
+
+function commitPartial(){
+  if(composeState.cho || composeState.jung){
+    committed.push(renderPartial(composeState));
+  }
+  composeState = {cho:null, jung:null, jong:null};
+}
+function commitChar(ch){ committed.push(ch); }
+
+function processKey(rawChar, capsLockOn){
+  const target = lines[current];
+  const posIdx = committed.length;
+  const targetChar = target ? target[posIdx] : undefined;
+  if(targetChar && /[A-Za-z0-9]/.test(targetChar)){
+    commitPartial();
+    commitChar(rawChar);
+    return;
+  }
+  if(capsLockOn && /^[A-Z]$/.test(rawChar)){
+    rawChar = rawChar.toLowerCase();
+  }
+  let jm = KEYMAP[rawChar];
+  if(!jm && (CHO_LIST.includes(rawChar) || JUNG_LIST.includes(rawChar))){
+    jm = rawChar;
+  }
+  if(!jm && /^[A-Z]$/.test(rawChar)){
+    jm = KEYMAP[rawChar.toLowerCase()];
+  }
+  if(!jm){ commitPartial(); commitChar(rawChar); return; }
+  if(isConsonant(jm)) handleConsonant(jm); else handleVowel(jm);
+}
+
+function handleConsonant(jm){
+  if(!composeState.cho && !composeState.jung){ composeState.cho = jm; }
+  else if(composeState.cho && !composeState.jung){ commitPartial(); composeState = {cho:jm, jung:null, jong:null}; }
+  else if(composeState.jung && !composeState.jong){
+    if(isValidJong(jm)) composeState.jong = jm;
+    else { commitPartial(); composeState = {cho:jm, jung:null, jong:null}; }
+  } else if(composeState.jong){
+    const combined = combineJong(composeState.jong, jm);
+    if(combined) composeState.jong = combined;
+    else { commitPartial(); composeState = {cho:jm, jung:null, jong:null}; }
+  }
+}
+
+function handleVowel(jm){
+  if(!composeState.cho && !composeState.jung){ composeState.jung = jm; }
+  else if(!composeState.cho && composeState.jung){
+    const combined = combineJung(composeState.jung, jm);
+    if(combined) composeState.jung = combined;
+    else { commitPartial(); composeState = {cho:null, jung:jm, jong:null}; }
+  } else if(composeState.cho && !composeState.jung){ composeState.jung = jm; }
+  else if(composeState.cho && composeState.jung && !composeState.jong){
+    const combined = combineJung(composeState.jung, jm);
+    if(combined) composeState.jung = combined;
+    else { commitPartial(); composeState = {cho:null, jung:jm, jong:null}; }
+  } else if(composeState.jong){
+    const split = splitJong(composeState.jong);
+    let moveCho;
+    if(split){ composeState.jong = split[0]; moveCho = split[1]; }
+    else { moveCho = composeState.jong; composeState.jong = null; }
+    commitPartial();
+    composeState = {cho:moveCho, jung:jm, jong:null};
+  }
+}
+
+function processBackspace(){
+  if(composeState.cho || composeState.jung){
+    if(composeState.jong){
+      const split = splitJong(composeState.jong);
+      composeState.jong = split ? split[0] : null;
+    } else if(composeState.jung){
+      const split = splitJung(composeState.jung);
+      composeState.jung = split || null;
+    } else if(composeState.cho){
+      composeState.cho = null;
+    }
+  } else if(committed.length>0){
+    if(committed.length<=committedLockedLength()) return;
+    const last = committed.pop();
+    const d = decomposeChar(last);
+    if(d.other!==undefined){ composeState = {cho:null,jung:null,jong:null}; }
+    else if(d.cho && d.jung && d.jong){ composeState = {cho:d.cho, jung:d.jung, jong:null}; }
+    else if(d.cho && d.jung && !d.jong){ composeState = {cho:d.cho, jung:null, jong:null}; }
+    else { composeState = {cho:null, jung:null, jong:null}; }
+  }
+}
+
+function autoFillSpacesDesktop(){
+  const target = lines[current];
+  if(!target) return;
+  while(committed.length<target.length && target[committed.length]===' '){
+    committed.push(' ');
+  }
+}
+
+function checkLineComplete(){
+  const target = lines[current];
+  const partialStr = (composeState.cho||composeState.jung) ? renderPartial(composeState) : '';
+  const typedSoFar = committed.join('') + partialStr;
+  if(typedSoFar.length===target.length && typedSoFar===target){
+    commitPartial();
+    completeLine();
+  }
+}
+
+function completeLine(){
+  desktopAutoFixRunning = false;
+  renderFinalizedLine(current);
+  const row = document.getElementById('line-'+current);
+  row.classList.remove('active'); row.classList.add('done');
+  current++;
+  resetComposer();
+  if(current>=lines.length){ finishPractice(); return; }
+  const nextRow = document.getElementById('line-'+current);
+  nextRow.classList.remove('upcoming');
+  nextRow.classList.add('active');
+  renderActiveLine();
+  updateSeal(); updateProgress(); scrollToActive(); updateStatsDisplay();
+}
+
+linesEl.addEventListener('click', () => { if(touchMode) mobileInput.focus(); else linesEl.focus(); });
+linesEl.addEventListener('focus', () => linesEl.classList.add('focused'));
+linesEl.addEventListener('blur', () => linesEl.classList.remove('focused'));
+
+linesEl.addEventListener('keydown', (e) => {
+  if(touchMode) return;
+  if(current>=lines.length) return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(e.key==='Enter'){
+    e.preventDefault();
+    hideTypoBubble();
+    checkLineComplete();
+    return;
+  }
+  if(e.key==='Backspace'){
+    e.preventDefault();
+    hideTypoBubble();
+    processBackspace();
+    renderActiveLine();
+    updateStatsDisplay();
+    return;
+  }
+  if(e.key.length===1){
+    e.preventDefault();
+    attempts++;
+    const capsLockOn = !!(e.getModifierState && e.getModifierState('CapsLock') && !e.shiftKey);
+    const before = stateSnap();
+    processKey(e.key, capsLockOn);
+    if(!(composeState.cho||composeState.jung)) autoFillSpacesDesktop();
+    dbg('KEY "'+e.key+'"'+(capsLockOn?' [capslock]':'')+' | before: '+before+' | after: '+stateSnap());
+    const target = lines[current];
+    let frontierWrong = false;
+    if(composeState.cho||composeState.jung){
+      const idx = committed.length;
+      if(idx<target.length){
+        const ok = isMatchSoFar(composeState, target[idx]);
+        frontierWrong = (ok===false);
+      }
+    } else if(committed.length>0){
+      const idx = committed.length-1;
+      if(idx<target.length) frontierWrong = committed[idx]!==target[idx];
+    }
+    if(frontierWrong) mistakes++;
+    renderActiveLine();
+    checkLineComplete();
+    updateStatsDisplay();
+
+    const needsFix = current<lines.length && desktopNeedsFix();
+    dbg('  frontierWrong='+frontierWrong+' needsFix='+needsFix+' locked='+committedLockedLength()+' target[locked]="'+(lines[current]?lines[current][committedLockedLength()]:'')+'"');
+    if(needsFix){
+      const locked = committedLockedLength();
+      const t = lines[current];
+      const textEl = document.getElementById('ltext-'+current);
+      const span = textEl ? textEl.children[locked] : null;
+      if(span) showTypoBubble(span, t[locked]);
+      runDesktopAutoFix();
+      autoFillSpacesDesktop();
+      renderActiveLine();
+      checkLineComplete();
+      dbg('  AFTER AUTOFIX: '+stateSnap());
+    } else {
+      hideTypoBubble();
+    }
+  }
+});
+
+function finishPractice(){
+  practiceFinished = true;
+  clearPracticeProgress();
+  practiceView.style.display='none';
+  doneView.style.display='block';
+  const acc = attempts===0 ? 100 : Math.max(0, Math.round(((attempts-mistakes)/attempts)*100));
+  document.getElementById('doneAcc').textContent = acc+'%';
+  const totalChars = lines.reduce((a,l)=>a+l.length,0);
+  document.getElementById('doneChars').textContent = totalChars;
+}
+
+document.getElementById('restartBtn').addEventListener('click', startPractice);
+document.getElementById('againBtn').addEventListener('click', () => {
+  doneView.style.display='none'; practiceView.style.display='block'; startPractice();
+});
+document.getElementById('newTextBtn').addEventListener('click', () => {
+  doneView.style.display='none'; tabSetup.click();
+});
+
+document.getElementById('fontUp').addEventListener('click', () => { fontScale = Math.min(fontScale+0.1, 1.6); renderLines(); });
+document.getElementById('fontDown').addEventListener('click', () => { fontScale = Math.max(fontScale-0.1, 0.8); renderLines(); });
+document.getElementById('debugBtn').addEventListener('click', () => {
+  const panel = document.getElementById('debugPanel');
+  panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+  if(panel.style.display==='block'){
+    panel.textContent = debugLog.join('\n');
+    panel.scrollTop = panel.scrollHeight;
+  }
+});
+document.getElementById('debugCopyBtn').addEventListener('click', () => {
+  const text = debugLog.join('\n');
+  copyTextRobust(text, (ok) => {
+    const panel = document.getElementById('debugPanel');
+    if(panel) panel.textContent = (ok ? '[복사 완료]\n' : '[복사 실패 - 아래 내용을 직접 선택해서 복사하세요]\n') + text;
+  });
+});
+
+restoreState();
+</script>
+</body>
+</html>
